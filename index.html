@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madrid Nocturno: Reparto Exprés</title>
+    <style>
+        :root {
+            --bg-deep: #070a12;
+            --panel-bg: #101726;
+            --panel-border: #1e293b;
+            --cyan: #00f2fe;
+            --amber: #ffb703;
+            --red: #ff3366;
+            --green: #06d6a0;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        .arcade-cabinet {
+            width: 100%;
+            max-width: 920px;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 242, 254, 0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HUD Superior */
+        .hud-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 18px;
+            background: linear-gradient(180deg, #162035 0%, #0d1322 100%);
+            border-bottom: 2px solid var(--panel-border);
+        }
+
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 183, 3, 0.15);
+            border: 1px solid var(--amber);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--amber);
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 0 10px rgba(255, 183, 3, 0.25);
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-main);
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--cyan);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .mission-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(7, 10, 18, 0.65);
+            border: 1px solid #26354d;
+            padding: 8px 14px;
+            border-radius: 10px;
+            min-width: 260px;
+        }
+
+        .mission-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--amber);
+            box-shadow: 0 0 10px var(--amber);
+            flex-shrink: 0;
+        }
+
+        .mission-dot.delivery {
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        .mission-dot.completed {
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+        }
+
+        .mission-text-wrap {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mission-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 0.6px;
+        }
+
+        .mission-status {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Medidor de Combustible */
+        .stats-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .fuel-widget {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 170px;
+        }
+
+        .fuel-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .fuel-bar-track {
+            width: 100%;
+            height: 12px;
+            background: #090d16;
+            border: 1px solid #2e3f5c;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .fuel-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #00f2fe 0%, #06d6a0 100%);
+            border-radius: 4px;
+            transition: width 0.1s linear, background 0.25s ease;
+        }
+
+        .timer-badge {
+            background: rgba(7, 10, 18, 0.65);
+            border: 1px solid #26354d;
+            border-radius: 8px;
+            padding: 6px 10px;
+            text-align: center;
+            min-width: 72px;
+        }
+
+        .timer-label {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            display: block;
+        }
+
+        .timer-value {
+            font-size: 14px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--amber);
+        }
+
+        .btn-restart {
+            background: linear-gradient(180deg, #25344f 0%, #182338 100%);
+            color: var(--text-main);
+            border: 1px solid #3b5278;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-restart:hover {
+            background: linear-gradient(180deg, #2f4366 0%, #1f2e4a 100%);
+            border-color: var(--cyan);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+        }
+
+        .btn-restart:active {
+            transform: translateY(1px);
+        }
+
+        /* Contenedor del Canvas */
+        .viewport-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: #080b14;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            outline: none;
+        }
+
+        /* Overlays de Inicio y Fin */
+        .overlay-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 10, 18, 0.84);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 20;
+            transition: opacity 0.2s ease;
+        }
+
+        .overlay-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .modal-card {
+            background: linear-gradient(180deg, #151e31 0%, #0d1320 100%);
+            border: 2px solid #2b3d5e;
+            border-radius: 16px;
+            padding: 26px 30px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 242, 254, 0.12);
+        }
+
+        .modal-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(0, 242, 254, 0.12);
+            color: var(--cyan);
+            border: 1px solid rgba(0, 242, 254, 0.35);
+            margin-bottom: 10px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .modal-desc {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #cbd5e1;
+            margin-bottom: 18px;
+        }
+
+        .instruction-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .inst-item {
+            background: rgba(8, 12, 22, 0.75);
+            border: 1px solid #23324d;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .inst-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 4px;
+        }
+
+        .inst-text {
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.35;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #ffb703 0%, #fb8500 100%);
+            color: #080b12;
+            font-size: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border: none;
+            border-radius: 10px;
+            padding: 13px 26px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 8px 20px rgba(255, 183, 3, 0.3);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(255, 183, 3, 0.45);
+        }
+
+        /* Notificación flotante de colisión o estado */
+        .toast-banner {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid var(--cyan);
+            color: #fff;
+            padding: 7px 16px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 15;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .toast-banner.visible {
+            opacity: 1;
+        }
+
+        /* Barra Inferior de Controles Visibles */
+        .controls-footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 18px;
+            background: #0b101d;
+            border-top: 1px solid var(--panel-border);
+        }
+
+        .controls-cluster {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .key-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .key-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-right: 4px;
+            font-weight: 600;
+        }
+
+        .keycap {
+            min-width: 28px;
+            height: 26px;
+            padding: 0 6px;
+            background: #172236;
+            border: 1px solid #31466b;
+            border-bottom-width: 3px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.08s ease;
+        }
+
+        .keycap.active {
+            background: var(--cyan);
+            color: #06101e;
+            border-color: #00b4d8;
+            transform: translateY(1px);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        /* Control deslizante de velocidad */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #131c2e;
+            border: 1px solid #26354d;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .speed-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 90px;
+            height: 6px;
+            background: #090d16;
+            border: 1px solid #2e3f5c;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 8px rgba(0, 242, 254, 0.6);
+            cursor: pointer;
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border: none;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 8px rgba(0, 242, 254, 0.6);
+            cursor: pointer;
+        }
+
+        .speed-value {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--cyan);
+            min-width: 32px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .legend-list {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        @media (max-width: 720px) {
+            .hud-bar {
+                justify-content: center;
+            }
+            .instruction-grid {
+                grid-template-columns: 1fr;
+            }
+            .controls-footer {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="arcade-cabinet">
+    <!-- Barra Superior de Estado -->
+    <header class="hud-bar">
+        <div class="brand-block">
+            <div class="brand-icon">M</div>
+            <div>
+                <div class="brand-title">Madrid Nocturno</div>
+                <div class="brand-subtitle">Distrito Centro · 2D Arcade</div>
+            </div>
+        </div>
+
+        <div class="mission-box">
+            <div id="missionDot" class="mission-dot"></div>
+            <div class="mission-text-wrap">
+                <span class="mission-label" id="missionPhaseLabel">ENCARGO PENDIENTE</span>
+                <span class="mission-status" id="missionStatusText">Recoge el pedido en Taberna Sol (Ámbar)</span>
+            </div>
+        </div>
+
+        <div class="stats-group">
+            <div class="fuel-widget">
+                <div class="fuel-header">
+                    <span>Combustible</span>
+                    <span id="fuelPercentText">100%</span>
+                </div>
+                <div class="fuel-bar-track">
+                    <div id="fuelBarFill" class="fuel-bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="timer-badge">
+                <span class="timer-label">Tiempo</span>
+                <span id="timerValue" class="timer-value">00.0s</span>
+            </div>
+
+            <button id="btnRestartHud" class="btn-restart" type="button" title="Reiniciar partida (Tecla R)">
+                <span>↺</span> Reiniciar (R)
+            </button>
+        </div>
+    </header>
+
+    <!-- Lienzo Principal del Juego -->
+    <div class="viewport-container">
+        <canvas id="gameCanvas" width="900" height="675" tabindex="0"></canvas>
+
+        <div id="toastBanner" class="toast-banner">¡Cuidado con el tráfico!</div>
+
+        <!-- Pantalla de Inicio -->
+        <div id="startOverlay" class="overlay-screen">
+            <div class="modal-card">
+                <span class="modal-tag">Turno de Noche</span>
+                <h1 class="modal-title">Reparto Exprés en Madrid</h1>
+                <p class="modal-desc">
+                    Recorre las avenidas nocturnas desde los bulevares hasta la Glorieta Cibeles. Recoge la comanda caliente y entrégala a tiempo antes de agotar el depósito.
+                </p>
+                <div class="instruction-grid">
+                    <div class="inst-item">
+                        <div class="inst-title">1. Recogida (Ámbar)</div>
+                        <div class="inst-text">Acércate a la zona iluminada de <strong>Taberna Sol</strong> abajo a la izquierda para cargar el pedido.</div>
+                    </div>
+                    <div class="inst-item">
+                        <div class="inst-title">2. Entrega (Cian)</div>
+                        <div class="inst-text">Cruza la ciudad hasta la <strong>Torre Castellana</strong> arriba a la derecha (15–30 s de ruta).</div>
+                    </div>
+                    <div class="inst-item">
+                        <div class="inst-title">3. Combustible</div>
+                        <div class="inst-text">Solo baja mientras te mueves (~60 s de autonomía continua). Si paras, se conserva.</div>
+                    </div>
+                    <div class="inst-item">
+                        <div class="inst-title">4. Tráfico Urbano</div>
+                        <div class="inst-text">Evita chocar con taxis y coches. Los golpes te rebotan, detienen tu avance y restan un poco de gasolina.</div>
+                    </div>
+                </div>
+                <button id="btnStartGame" class="btn-primary" type="button">Arrancar Moto (Espacio / Clic)</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Fin de Partida (Victoria / Sin Combustible) -->
+        <div id="endOverlay" class="overlay-screen hidden">
+            <div class="modal-card">
+                <span id="endModalTag" class="modal-tag">Resultado</span>
+                <h2 id="endModalTitle" class="modal-title">¡Pedido Entregado!</h2>
+                <p id="endModalDesc" class="modal-desc">Has completado el reparto nocturno por Madrid.</p>
+                <div class="instruction-grid" id="endStatsGrid">
+                    <div class="inst-item">
+                        <div class="inst-title">Tiempo empleado</div>
+                        <div id="endTimeStat" class="inst-text" style="font-size:15px;font-weight:800;color:#fff;">00.0 s</div>
+                    </div>
+                    <div class="inst-item">
+                        <div class="inst-title">Combustible restante</div>
+                        <div id="endFuelStat" class="inst-text" style="font-size:15px;font-weight:800;color:#06d6a0;">0%</div>
+                    </div>
+                </div>
+                <button id="btnPlayAgain" class="btn-primary" type="button">Jugar de Nuevo (Reiniciar)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de Controles Visibles -->
+    <footer class="controls-footer">
+        <div class="controls-cluster">
+            <div class="key-group">
+                <span class="key-label">Mover (WASD / Flechas):</span>
+                <span class="keycap" data-key="up">W / ↑</span>
+                <span class="keycap" data-key="left">A / ←</span>
+                <span class="keycap" data-key="down">S / ↓</span>
+                <span class="keycap" data-key="right">D / →</span>
+            </div>
+            <div class="key-group">
+                <span class="key-label">Reiniciar:</span>
+                <span class="keycap" id="keycapR">R</span>
+            </div>
+            <div class="speed-control">
+                <label for="speedSlider" class="key-label" style="margin-right:0;">Velocidad Moto:</label>
+                <input id="speedSlider" class="speed-slider" type="range" min="0.6" max="1.4" step="0.1" value="1.0">
+                <span id="speedValueLabel" class="speed-value">1,0×</span>
+            </div>
+        </div>
+
+        <div class="legend-list">
+            <div class="legend-item">
+                <span class="legend-swatch" style="background:#ffb703;box-shadow:0 0 6px #ffb703;"></span>
+                <span>Recogida (Taberna)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-swatch" style="background:#00f2fe;box-shadow:0 0 6px #00f2fe;"></span>
+                <span>Destino (Cliente)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-swatch" style="background:#ff3366;"></span>
+                <span>Coches / Taxis</span>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+(function() {
+    "use strict";
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Referencias DOM
+    const missionDot = document.getElementById("missionDot");
+    const missionPhaseLabel = document.getElementById("missionPhaseLabel");
+    const missionStatusText = document.getElementById("missionStatusText");
+    const fuelPercentText = document.getElementById("fuelPercentText");
+    const fuelBarFill = document.getElementById("fuelBarFill");
+    const timerValue = document.getElementById("timerValue");
+    const toastBanner = document.getElementById("toastBanner");
+
+    const startOverlay = document.getElementById("startOverlay");
+    const endOverlay = document.getElementById("endOverlay");
+    const endModalTag = document.getElementById("endModalTag");
+    const endModalTitle = document.getElementById("endModalTitle");
+    const endModalDesc = document.getElementById("endModalDesc");
+    const endTimeStat = document.getElementById("endTimeStat");
+    const endFuelStat = document.getElementById("endFuelStat");
+
+    const btnStartGame = document.getElementById("btnStartGame");
+    const btnPlayAgain = document.getElementById("btnPlayAgain");
+    const btnRestartHud = document.getElementById("btnRestartHud");
+    const keycapR = document.getElementById("keycapR");
+    const speedSlider = document.getElementById("speedSlider");
+    const speedValueLabel = document.getElementById("speedValueLabel");
+
+    const keycaps = {
+        up: document.querySelector('.keycap[data-key="up"]'),
+        down: document.querySelector('.keycap[data-key="down"]'),
+        left: document.querySelector('.keycap[data-key="left"]'),
+        right: document.querySelector('.keycap[data-key="right"]')
+    };
+
+    // Dimensiones lógicas del mundo
+    const WORLD_W = 900;
+    const WORLD_H = 675;
+
+    // Configuración de combustible:
+    // Se agota en exactamente 60 segundos de movimiento continuo a velocidad normal.
+    // Una entrega normal toma entre 15 y 28 segundos, permitiendo al menos una entrega holgada.
+    const MAX_FUEL = 100;
+    const FUEL_DRAIN_PER_SEC_MOVING = 100 / 60; // ~1.666% por segundo en movimiento
+    const COLLISION_FUEL_PENALTY = 3.5;         // Penalización clara al chocar
+
+    // Bloques de edificios (inspirados en manzanas achaflanadas madrileñas y parques)
+    // Calles verticales en X: [36..106], [280..360], [540..620], [794..864]
+    // Calles horizontales en Y: [36..106], [275..355], [569..639]
+    const CITY_BLOCKS = [
+        // Fila Superior de Manzanas
+        { x: 106, y: 106, w: 174, h: 169, name: "Mercado Chamberí", roofColor: "#141d30", trimColor: "#243454", courtyards: [{x: 136, y: 136, w: 114, h: 109}], neon: "#00f2fe" },
+        { x: 360, y: 106, w: 180, h: 169, name: "Galerías Fuencarral", roofColor: "#162038", trimColor: "#2c3e66", courtyards: [{x: 395, y: 136, w: 110, h: 109}], neon: "#ffb703" },
+        { x: 620, y: 106, w: 174, h: 169, name: "Torre Castellana", roofColor: "#121b2d", trimColor: "#1f3252", courtyards: [{x: 655, y: 140, w: 104, h: 100}], neon: "#00f2fe" },
+
+        // Fila Inferior de Manzanas
+        { x: 106, y: 355, w: 174, h: 214, name: "Barrio de las Letras", roofColor: "#151e32", trimColor: "#293959", courtyards: [{x: 136, y: 390, w: 114, h: 144}], neon: "#ffb703" },
+        { x: 360, y: 355, w: 180, h: 214, name: "Jardines del Retiro", roofColor: "#0f2429", trimColor: "#1c454d", isPark: true },
+        { x: 620, y: 355, w: 174, h: 214, name: "Teatro Alcalá", roofColor: "#171f36", trimColor: "#2e3d66", courtyards: [{x: 652, y: 392, w: 110, h: 140}], neon: "#ff3366" }
+    ];
+
+    // Bordes exteriores del mapa (aceras perimetrales)
+    const MAP_BORDERS = [
+        { x: 0, y: 0, w: WORLD_W, h: 36 },
+        { x: 0, y: WORLD_H - 36, w: WORLD_W, h: 36 },
+        { x: 0, y: 0, w: 36, h: WORLD_H },
+        { x: WORLD_W - 36, y: 0, w: 36, h: WORLD_H }
+    ];
+
+    // Glorieta / Fuente central (inspirada en Cibeles/Neptuno) en la intersección (320, 315)
+    const PLAZA_FOUNTAIN = {
+        x: 320,
+        y: 315,
+        radius: 18
+    };
+
+    // Puntos de Recogida y Entrega (ubicados en calzada accesible, nunca bloqueados)
+    const PICKUP_ZONE = {
+        x: 193,
+        y: 596,
+        radius: 26,
+        label: "TABERNA SOL",
+        sub: "Zona de Recogida"
+    };
+
+    const DELIVERY_ZONE = {
+        x: 707,
+        y: 74,
+        radius: 28,
+        label: "CLIENTE CASTELLANA",
+        sub: "Punto de Entrega"
+    };
+
+    // Intersecciones con Semáforos Visuales
+    const INTERSECTIONS = [
+        { x: 320, y: 71 },
+        { x: 580, y: 71 },
+        { x: 320, y: 315 },
+        { x: 580, y: 315 },
+        { x: 320, y: 604 },
+        { x: 580, y: 604 }
+    ];
+
+    // Plantilla determinista de vehículos (Taxis de Madrid con franja roja y turismos nocturnos)
+    // Sus rutas circulan por los carriles sin bloquear jamás los puntos de recogida o entrega.
+    const INITIAL_VEHICLES = [
+        // 1. Taxi por Gran Vía Central (Hacia el Este, carril inferior de la avenida central)
+        {
+            x: 140, y: 334, w: 36, h: 20,
+            vx: 115, vy: 0,
+            type: "taxi", color: "#f8fafc", roof: "#e2e8f0"
+        },
+        // 2. Berlina Cian Oscuro por Gran Vía Central (Hacia el Oeste, carril superior)
+        {
+            x: 740, y: 294, w: 38, h: 20,
+            vx: -125, vy: 0,
+            type: "sedan", color: "#38bdf8", roof: "#0284c7"
+        },
+        // 3. Compacto Coral por Ronda Sur (Hacia el Este, carril inferior sur)
+        {
+            x: 420, y: 622, w: 34, h: 19,
+            vx: 105, vy: 0,
+            type: "sedan", color: "#fb7185", roof: "#e11d48"
+        },
+        // 4. Taxi por Paseo del Prado (Vertical X=580, bajando por carril izquierdo)
+        {
+            x: 560, y: 180, w: 20, h: 36,
+            vx: 0, vy: 110,
+            type: "taxi", color: "#f8fafc", roof: "#cbd5e1"
+        },
+        // 5. Coche Ámbar por Paseo del Prado (Vertical X=580, subiendo por carril derecho)
+        {
+            x: 600, y: 500, w: 20, h: 36,
+            vx: 0, vy: -120,
+            type: "sedan", color: "#facc15", roof: "#ca8a04"
+        },
+        // 6. Coche Violeta por Calle Fuencarral (Vertical X=320, subiendo por carril derecho)
+        {
+            x: 342, y: 510, w: 20, h: 36,
+            vx: 0, vy: -100,
+            type: "sedan", color: "#a855f7", roof: "#7e22ce"
+        },
+        // 7. Furgoneta de Reparto por Bulevar Norte (Hacia el Oeste, carril superior Y=54)
+        {
+            x: 510, y: 54, w: 40, h: 21,
+            vx: -95, vy: 0,
+            type: "van", color: "#94a3b8", roof: "#64748b"
+        }
+    ];
+
+    // Estado reactivo del juego
+    let gameState = "START"; // "START", "PLAYING", "WON", "OUT_OF_FUEL"
+    let elapsedTime = 0;
+    let trafficLightTimer = 0;
+    let pulseTimer = 0;
+    let toastTimeout = null;
+
+    // Estado de entrada por teclado y puntero
+    const keys = {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+    };
+
+    // Jugador (Moto de reparto)
+    const BASE_MAX_SPEED = 215;
+    const BASE_ACCEL = 780;
+    let speedMultiplier = 1.0;
+
+    const player = {
+        x: 72,
+        y: 604,
+        vx: 0,
+        vy: 0,
+        angle: 0,          // Radianes (0 = Este)
+        radius: 11,
+        maxSpeed: BASE_MAX_SPEED, // Permite cruzar el mapa en ~16-24 segundos a 1,0×
+        accel: BASE_ACCEL,
+        friction: 6.5,
+        fuel: MAX_FUEL,
+        hasOrder: false,
+        hitCooldown: 0,
+        hitFlash: 0
+    };
+
+    let vehicles = [];
+
+    function showToast(message, borderColor = "#00f2fe") {
+        toastBanner.textContent = message;
+        toastBanner.style.borderColor = borderColor;
+        toastBanner.classList.add("visible");
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toastBanner.classList.remove("visible");
+        }, 2000);
+    }
+
+    function resetGameData() {
+        // Restaurar posición y estado inicial del motorista
+        player.x = 72;
+        player.y = 604;
+        player.vx = 0;
+        player.vy = 0;
+        player.angle = 0;
+        player.fuel = MAX_FUEL;
+        player.hasOrder = false;
+        player.hitCooldown = 0;
+        player.hitFlash = 0;
+
+        // Restaurar cronómetros y semáforos exactamente al mismo estado inicial
+        elapsedTime = 0;
+        trafficLightTimer = 0;
+        pulseTimer = 0;
+
+        // Clonar vehículos desde la plantilla determinista
+        vehicles = INITIAL_VEHICLES.map(v => ({ ...v }));
+
+        updateHudUI();
+    }
+
+    function startGame() {
+        resetGameData();
+        gameState = "PLAYING";
+        startOverlay.classList.add("hidden");
+        endOverlay.classList.add("hidden");
+        canvas.focus();
+        showToast("¡Recoge el pedido en Taberna Sol (Zona Ámbar)!", "#ffb703");
+    }
+
+    function triggerEndGame(outcome) {
+        gameState = outcome;
+        keys.up = keys.down = keys.left = keys.right = false;
+        syncKeycapsUI();
+
+        endOverlay.classList.remove("hidden");
+        endTimeStat.textContent = elapsedTime.toFixed(1) + " s";
+        endFuelStat.textContent = Math.ceil(player.fuel) + "%";
+
+        if (outcome === "WON") {
+            endModalTag.textContent = "¡Reparto Completado!";
+            endModalTag.style.color = "#06d6a0";
+            endModalTag.style.borderColor = "#06d6a0";
+            endModalTitle.textContent = "¡Entrega a Tiempo!";
+            endModalDesc.textContent = "El pedido ha llegado caliente a Torre Castellana. Excelente conducción por la noche madrileña.";
+            endFuelStat.style.color = "#06d6a0";
+        } else {
+            endModalTag.textContent = "Depósito Vacío";
+            endModalTag.style.color = "#ff3366";
+            endModalTag.style.borderColor = "#ff3366";
+            endModalTitle.textContent = "¡Te quedaste sin gasolina!";
+            endModalDesc.textContent = "La moto se ha detenido antes de completar el encargo. Vigila tu ruta y evita colisiones.";
+            endFuelStat.style.color = "#ff3366";
+        }
+    }
+
+    function updateHudUI() {
+        // Actualizar barra y texto de combustible
+        const pct = Math.max(0, Math.min(100, player.fuel));
+        fuelPercentText.textContent = Math.ceil(pct) + "%";
+        fuelBarFill.style.width = pct + "%";
+
+        if (pct > 50) {
+            fuelBarFill.style.background = "linear-gradient(90deg, #00f2fe 0%, #06d6a0 100%)";
+            fuelPercentText.style.color = "#f1f5f9";
+        } else if (pct > 22) {
+            fuelBarFill.style.background = "linear-gradient(90deg, #ffb703 0%, #fb8500 100%)";
+            fuelPercentText.style.color = "#ffb703";
+        } else {
+            fuelBarFill.style.background = "linear-gradient(90deg, #ff3366 0%, #d90429 100%)";
+            fuelPercentText.style.color = "#ff3366";
+        }
+
+        // Actualizar indicador de misión
+        if (gameState === "WON") {
+            missionDot.className = "mission-dot completed";
+            missionPhaseLabel.textContent = "REPARTO COMPLETADO";
+            missionStatusText.textContent = "Pedido entregado en Torre Castellana";
+        } else if (!player.hasOrder) {
+            missionDot.className = "mission-dot";
+            missionPhaseLabel.textContent = "PASO 1 · RECOGIDA PENDIENTE";
+            missionStatusText.textContent = "Ve a Taberna Sol (Sur-Oeste · Ámbar)";
+        } else {
+            missionDot.className = "mission-dot delivery";
+            missionPhaseLabel.textContent = "PASO 2 · PEDIDO ACTIVO EN MOTO";
+            missionStatusText.textContent = "Llévalo a Torre Castellana (Nor-Este · Cian)";
+        }
+
+        // Actualizar cronómetro
+        timerValue.textContent = elapsedTime.toFixed(1).padStart(4, "0") + "s";
+    }
+
+    function setDirectionKey(code, isPressed) {
+        if (code === "ArrowUp" || code === "KeyW") keys.up = isPressed;
+        if (code === "ArrowDown" || code === "KeyS") keys.down = isPressed;
+        if (code === "ArrowLeft" || code === "KeyA") keys.left = isPressed;
+        if (code === "ArrowRight" || code === "KeyD") keys.right = isPressed;
+        syncKeycapsUI();
+    }
+
+    function syncKeycapsUI() {
+        keycaps.up.classList.toggle("active", keys.up);
+        keycaps.down.classList.toggle("active", keys.down);
+        keycaps.left.classList.toggle("active", keys.left);
+        keycaps.right.classList.toggle("active", keys.right);
+    }
+
+    window.addEventListener("keydown", (e) => {
+        const relevantCodes = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyW", "KeyA", "KeyS", "KeyD", "KeyR", "Space", "Enter"];
+        if (relevantCodes.includes(e.code)) {
+            e.preventDefault();
+        }
+
+        if (e.code === "KeyR") {
+            keycapR.classList.add("active");
+            startGame();
+            return;
+        }
+
+        if ((e.code === "Space" || e.code === "Enter") && gameState !== "PLAYING") {
+            startGame();
+            return;
+        }
+
+        if (gameState === "PLAYING") {
+            setDirectionKey(e.code, true);
+        }
+    }, { passive: false });
+
+    window.addEventListener("keyup", (e) => {
+        if (e.code === "KeyR") {
+            keycapR.classList.remove("active");
+        }
+        setDirectionKey(e.code, false);
+    });
+
+    // Soporte táctil / clic en las teclas visuales inferiores
+    Object.entries(keycaps).forEach(([dir, el]) => {
+        const activate = (e) => {
+            e.preventDefault();
+            if (gameState === "PLAYING") {
+                keys[dir] = true;
+                syncKeycapsUI();
+            }
+        };
+        const deactivate = (e) => {
+            e.preventDefault();
+            keys[dir] = false;
+            syncKeycapsUI();
+        };
+        el.addEventListener("mousedown", activate);
+        el.addEventListener("mouseup", deactivate);
+        el.addEventListener("mouseleave", deactivate);
+        el.addEventListener("touchstart", activate, { passive: false });
+        el.addEventListener("touchend", deactivate, { passive: false });
+    });
+
+    keycapR.addEventListener("click", () => startGame());
+    btnStartGame.addEventListener("click", () => startGame());
+    btnPlayAgain.addEventListener("click", () => startGame());
+    btnRestartHud.addEventListener("click", () => startGame());
+    canvas.addEventListener("mousedown", () => canvas.focus());
+
+    speedSlider.addEventListener("input", (e) => {
+        speedMultiplier = parseFloat(e.target.value);
+        player.maxSpeed = BASE_MAX_SPEED * speedMultiplier;
+        player.accel = BASE_ACCEL * speedMultiplier;
+        speedValueLabel.textContent = speedMultiplier.toFixed(1).replace(".", ",") + "×";
+    });
+    speedSlider.addEventListener("change", () => canvas.focus());
+
+    function circleRectCollide(cx, cy, cr, rx, ry, rw, rh) {
+        const closestX = Math.max(rx, Math.min(cx, rx + rw));
+        const closestY = Math.max(ry, Math.min(cy, ry + rh));
+        const dx = cx - closestX;
+        const dy = cy - closestY;
+        const distSq = dx * dx + dy * dy;
+        if (distSq < cr * cr) {
+            const dist = Math.sqrt(distSq) || 0.001;
+            const overlap = cr - dist;
+            // Si el centro está dentro del rectángulo, empujar hacia afuera
+            const nx = dist > 0.001 ? dx / dist : 0;
+            const ny = dist > 0.001 ? dy / dist : -1;
+            return { hit: true, nx, ny, overlap };
+        }
+        return { hit: false };
+    }
+
+    function resolveBuildingCollisions() {
+        // Colisión contra bordes del mapa y bloques de edificios
+        const allSolids = [...MAP_BORDERS, ...CITY_BLOCKS];
+        for (let i = 0; i < allSolids.length; i++) {
+            const b = allSolids[i];
+            const res = circleRectCollide(player.x, player.y, player.radius, b.x, b.y, b.w, b.h);
+            if (res.hit) {
+                player.x += res.nx * res.overlap;
+                player.y += res.ny * res.overlap;
+                // Amortiguar velocidad contra el bordillo
+                const dot = player.vx * res.nx + player.vy * res.ny;
+                if (dot < 0) {
+                    player.vx -= dot * res.nx * 1.1;
+                    player.vy -= dot * res.ny * 1.1;
+                }
+            }
+        }
+
+        // Colisión contra la fuente central de la Glorieta
+        const dxF = player.x - PLAZA_FOUNTAIN.x;
+        const dyF = player.y - PLAZA_FOUNTAIN.y;
+        const distF = Math.hypot(dxF, dyF);
+        const minDistF = player.radius + PLAZA_FOUNTAIN.radius;
+        if (distF < minDistF && distF > 0.001) {
+            const nx = dxF / distF;
+            const ny = dyF / distF;
+            player.x += nx * (minDistF - distF);
+            player.y += ny * (minDistF - distF);
+            player.vx *= 0.5;
+            player.vy *= 0.5;
+        }
+    }
+
+    function getTrafficLightState() {
+        // Ciclo de 10 segundos:
+        // 0..4.0s -> Horizontal Verde, Vertical Rojo
+        // 4.0..5.0s -> Horizontal Ámbar, Vertical Rojo
+        // 5.0..9.0s -> Horizontal Rojo, Vertical Verde
+        // 9.0..10.0s -> Horizontal Rojo, Vertical Ámbar
+        const t = trafficLightTimer % 10;
+        let horiz = "RED";
+        let vert = "RED";
+        if (t < 4.0) {
+            horiz = "GREEN";
+            vert = "RED";
+        } else if (t < 5.0) {
+            horiz = "AMBER";
+            vert = "RED";
+        } else if (t < 9.0) {
+            horiz = "RED";
+            vert = "GREEN";
+        } else {
+            horiz = "RED";
+            vert = "AMBER";
+        }
+        return { horiz, vert };
+    }
+
+    function updateVehicles(dt) {
+        for (let i = 0; i < vehicles.length; i++) {
+            const v = vehicles[i];
+            v.x += v.vx * dt;
+            v.y += v.vy * dt;
+
+            // Reciclaje continuo al salir de los túneles de borde
+            if (v.vx > 0 && v.x - v.w / 2 > WORLD_W - 36) {
+                v.x = 36 - v.w / 2;
+            } else if (v.vx < 0 && v.x + v.w / 2 < 36) {
+                v.x = WORLD_W - 36 + v.w / 2;
+            }
+
+            if (v.vy > 0 && v.y - v.h / 2 > WORLD_H - 36) {
+                v.y = 36 - v.h / 2;
+            } else if (v.vy < 0 && v.y + v.h / 2 < 36) {
+                v.y = WORLD_H - 36 + v.h / 2;
+            }
+        }
+    }
+
+    function checkVehicleCollisions() {
+        for (let i = 0; i < vehicles.length; i++) {
+            const v = vehicles[i];
+            const rx = v.x - v.w / 2;
+            const ry = v.y - v.h / 2;
+            const res = circleRectCollide(player.x, player.y, player.radius, rx, ry, v.w, v.h);
+
+            if (res.hit) {
+                // Impedir atravesar el vehículo separando inmediatamente a la moto
+                player.x += res.nx * (res.overlap + 2);
+                player.y += res.ny * (res.overlap + 2);
+
+                // Rebote físico suave que detiene el avance
+                player.vx = res.nx * 110;
+                player.vy = res.ny * 110;
+
+                // Asegurar que el empujón no meta al jugador dentro de un edificio
+                resolveBuildingCollisions();
+
+                if (player.hitCooldown <= 0) {
+                    player.hitCooldown = 0.65;
+                    player.hitFlash = 0.45;
+                    player.fuel = Math.max(0, player.fuel - COLLISION_FUEL_PENALTY);
+                    showToast("¡Colisión con vehículo! Avance detenido (-3.5% combustible)", "#ff3366");
+
+                    if (player.fuel <= 0) {
+                        player.fuel = 0;
+                        updateHudUI();
+                        triggerEndGame("OUT_OF_FUEL");
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    function updateGame(dt) {
+        pulseTimer += dt;
+        trafficLightTimer += dt;
+
+        if (gameState !== "PLAYING") {
+            return;
+        }
+
+        elapsedTime += dt;
+        if (player.hitCooldown > 0) player.hitCooldown = Math.max(0, player.hitCooldown - dt);
+        if (player.hitFlash > 0) player.hitFlash = Math.max(0, player.hitFlash - dt);
+
+        // Vector de entrada del jugador
+        let ix = 0;
+        let iy = 0;
+        if (keys.left) ix -= 1;
+        if (keys.right) ix += 1;
+        if (keys.up) iy -= 1;
+        if (keys.down) iy += 1;
+
+        if (ix !== 0 && iy !== 0) {
+            const inv = 1 / Math.SQRT2;
+            ix *= inv;
+            iy *= inv;
+        }
+
+        // Aplicar aceleración y fricción
+        if (ix !== 0 || iy !== 0) {
+            player.vx += ix * player.accel * dt;
+            player.vy += iy * player.accel * dt;
+        } else {
+            const decay = Math.max(0, 1 - player.friction * dt);
+            player.vx *= decay;
+            player.vy *= decay;
+        }
+
+        // Limitar velocidad máxima
+        const currentSpeed = Math.hypot(player.vx, player.vy);
+        if (currentSpeed > player.maxSpeed) {
+            const scale = player.maxSpeed / currentSpeed;
+            player.vx *= scale;
+            player.vy *= scale;
+        } else if (currentSpeed < 4 && ix === 0 && iy === 0) {
+            player.vx = 0;
+            player.vy = 0;
+        }
+
+        // Actualizar orientación de la moto y su faro
+        const finalSpeed = Math.hypot(player.vx, player.vy);
+        if (finalSpeed > 8) {
+            player.angle = Math.atan2(player.vy, player.vx);
+        }
+
+        // Mover jugador
+        player.x += player.vx * dt;
+        player.y += player.vy * dt;
+
+        // Consumo de combustible: baja SOLO al moverse y se mantiene al parar
+        if (finalSpeed > 5) {
+            const speedFactor = Math.min(1, finalSpeed / player.maxSpeed);
+            player.fuel = Math.max(0, player.fuel - FUEL_DRAIN_PER_SEC_MOVING * (0.35 + 0.65 * speedFactor) * dt);
+            if (player.fuel <= 0) {
+                player.fuel = 0;
+                updateHudUI();
+                triggerEndGame("OUT_OF_FUEL");
+                return;
+            }
+        }
+
+        // Resolver colisiones con edificios y mobiliario
+        resolveBuildingCollisions();
+
+        // Actualizar tráfico y comprobar colisiones con coches
+        updateVehicles(dt);
+        checkVehicleCollisions();
+
+        if (gameState !== "PLAYING") return;
+
+        // Comprobar Recogida de Pedido (Taberna Sol)
+        if (!player.hasOrder) {
+            const distPickup = Math.hypot(player.x - PICKUP_ZONE.x, player.y - PICKUP_ZONE.y);
+            if (distPickup <= PICKUP_ZONE.radius + player.radius) {
+                player.hasOrder = true;
+                showToast("¡Pedido recogido! Llévalo a Torre Castellana (Noreste · Cian)", "#00f2fe");
+            }
+        } else {
+            // Comprobar Entrega de Pedido (Torre Castellana)
+            const distDelivery = Math.hypot(player.x - DELIVERY_ZONE.x, player.y - DELIVERY_ZONE.y);
+            if (distDelivery <= DELIVERY_ZONE.radius + player.radius) {
+                updateHudUI();
+                triggerEndGame("WON");
+                return;
+            }
+        }
+
+        updateHudUI();
+    }
+
+    function drawRoadNetwork() {
+        // Fondo de asfalto azul noche profundo
+        ctx.fillStyle = "#0b101d";
+        ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+        // Textura sutil de carriles principales
+        ctx.fillStyle = "#0e1526";
+        // Calles horizontales
+        ctx.fillRect(36, 36, WORLD_W - 72, 70);
+        ctx.fillRect(36, 275, WORLD_W - 72, 80);
+        ctx.fillRect(36, 569, WORLD_W - 72, 70);
+        // Calles verticales
+        ctx.fillRect(36, 36, 70, WORLD_H - 72);
+        ctx.fillRect(280, 36, 80, WORLD_H - 72);
+        ctx.fillRect(540, 36, 80, WORLD_H - 72);
+        ctx.fillRect(794, 36, 70, WORLD_H - 72);
+
+        // Líneas divisorias de carril discontinuas
+        ctx.strokeStyle = "#26354f";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([14, 14]);
+
+        // Horizontales
+        const hCenters = [71, 315, 604];
+        hCenters.forEach(y => {
+            ctx.beginPath();
+            ctx.moveTo(106, y); ctx.lineTo(280, y);
+            ctx.moveTo(360, y); ctx.lineTo(540, y);
+            ctx.moveTo(620, y); ctx.lineTo(794, y);
+            ctx.stroke();
+        });
+
+        // Verticales
+        const vCenters = [71, 320, 580, 829];
+        vCenters.forEach(x => {
+            ctx.beginPath();
+            ctx.moveTo(x, 106); ctx.lineTo(x, 275);
+            ctx.moveTo(x, 355); ctx.lineTo(x, 569);
+            ctx.stroke();
+        });
+        ctx.setLineDash([]);
+
+        // Pasos de peatones (Cebras blancas azuladas en las intersecciones)
+        ctx.fillStyle = "rgba(203, 213, 225, 0.22)";
+        function drawCrosswalkH(x, y, width) {
+            for (let i = 4; i < width - 4; i += 10) {
+                ctx.fillRect(x + i, y, 5, 14);
+            }
+        }
+        function drawCrosswalkV(x, y, height) {
+            for (let i = 4; i < height - 4; i += 10) {
+                ctx.fillRect(x, y + i, 14, 5);
+            }
+        }
+
+        // Dibujar pasos de cebra alrededor de las manzanas centrales
+        const vEdges = [280, 540];
+        vEdges.forEach(vx => {
+            drawCrosswalkH(vx + 6, 108, 68);
+            drawCrosswalkH(vx + 6, 258, 68);
+            drawCrosswalkH(vx + 6, 358, 68);
+            drawCrosswalkH(vx + 6, 552, 68);
+        });
+
+        const hEdges = [275];
+        hEdges.forEach(hy => {
+            drawCrosswalkV(108, hy + 6, 68);
+            drawCrosswalkV(262, hy + 6, 68);
+            drawCrosswalkV(362, hy + 6, 68);
+            drawCrosswalkV(522, hy + 6, 68);
+            drawCrosswalkV(622, hy + 6, 68);
+            drawCrosswalkV(776, hy + 6, 68);
+        });
+
+        // Glorieta Central (Fuente de Cibeles estilizada)
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(PLAZA_FOUNTAIN.x, PLAZA_FOUNTAIN.y, PLAZA_FOUNTAIN.radius + 7, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.25)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Piedra exterior de la fuente
+        ctx.beginPath();
+        ctx.arc(PLAZA_FOUNTAIN.x, PLAZA_FOUNTAIN.y, PLAZA_FOUNTAIN.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#1e293b";
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#475569";
+        ctx.stroke();
+
+        // Agua iluminada en cian
+        ctx.beginPath();
+        ctx.arc(PLAZA_FOUNTAIN.x, PLAZA_FOUNTAIN.y, PLAZA_FOUNTAIN.radius - 5, 0, Math.PI * 2);
+        ctx.fillStyle = "#0891b2";
+        ctx.fill();
+
+        // Escultura central y anillos de agua
+        const ripple = 4 + Math.sin(pulseTimer * 4) * 3;
+        ctx.beginPath();
+        ctx.arc(PLAZA_FOUNTAIN.x, PLAZA_FOUNTAIN.y, ripple, 0, Math.PI * 2);
+        ctx.strokeStyle = "#67e8f9";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(PLAZA_FOUNTAIN.x, PLAZA_FOUNTAIN.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#e2e8f0";
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawCityBlocks() {
+        // Bordes perimetrales (Muros urbanos exteriores)
+        ctx.fillStyle = "#111827";
+        ctx.strokeStyle = "#1f2937";
+        ctx.lineWidth = 2;
+        MAP_BORDERS.forEach(b => {
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.strokeRect(b.x, b.y, b.w, b.h);
+        });
+
+        // Manzanas de edificios con jerarquía visual (acera, cornisa, patio interior, claraboyas)
+        CITY_BLOCKS.forEach(b => {
+            ctx.save();
+
+            // Acera exterior con esquinas redondeadas
+            ctx.fillStyle = "#1e293b";
+            ctx.strokeStyle = "#334155";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(b.x, b.y, b.w, b.h, 10);
+            ctx.fill();
+            ctx.stroke();
+
+            if (b.isPark) {
+                // Parque del Retiro nocturno con senderos y árboles iluminados
+                ctx.fillStyle = "#0b2126";
+                ctx.beginPath();
+                ctx.roundRect(b.x + 8, b.y + 8, b.w - 16, b.h - 16, 6);
+                ctx.fill();
+
+                // Senderos cruzados del parque
+                ctx.strokeStyle = "#163840";
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.moveTo(b.x + 12, b.y + b.h / 2);
+                ctx.lineTo(b.x + b.w - 12, b.y + b.h / 2);
+                ctx.moveTo(b.x + b.w / 2, b.y + 12);
+                ctx.lineTo(b.x + b.w / 2, b.y + b.h - 12);
+                ctx.stroke();
+
+                // Estanque central del parque
+                ctx.fillStyle = "#0e4f63";
+                ctx.strokeStyle = "#22d3ee";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(b.x + b.w / 2 - 26, b.y + b.h / 2 - 18, 52, 36, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                // Copas de árboles
+                const treeOffsets = [
+                    [32, 36], [148, 36], [32, 178], [148, 178],
+                    [58, 70], [122, 70], [58, 144], [122, 144]
+                ];
+                treeOffsets.forEach(([ox, oy]) => {
+                    ctx.beginPath();
+                    ctx.arc(b.x + ox, b.y + oy, 13, 0, Math.PI * 2);
+                    ctx.fillStyle = "#113e38";
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(b.x + ox - 2, b.y + oy - 2, 7, 0, Math.PI * 2);
+                    ctx.fillStyle = "#195c52";
+                    ctx.fill();
+                });
+            } else {
+                // Bloque de edificio con tejado en relieve
+                ctx.fillStyle = b.roofColor;
+                ctx.strokeStyle = b.trimColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(b.x + 8, b.y + 8, b.w - 16, b.h - 16, 6);
+                ctx.fill();
+                ctx.stroke();
+
+                // Patios interiores típicos de Madrid
+                if (b.courtyards) {
+                    b.courtyards.forEach(c => {
+                        ctx.fillStyle = "#090d16";
+                        ctx.strokeStyle = b.trimColor;
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.roundRect(c.x, c.y, c.w, c.h, 4);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        // Luces cálidas de ventanas en el patio interior
+                        ctx.fillStyle = "rgba(255, 183, 3, 0.45)";
+                        for (let wx = c.x + 10; wx < c.x + c.w - 12; wx += 18) {
+                            ctx.fillRect(wx, c.y + 3, 8, 2);
+                            ctx.fillRect(wx, c.y + c.h - 5, 8, 2);
+                        }
+                    });
+                }
+
+                // Acentos de neón en las cornisas
+                ctx.strokeStyle = b.neon;
+                ctx.lineWidth = 1.5;
+                ctx.globalAlpha = 0.55;
+                ctx.strokeRect(b.x + 13, b.y + 13, b.w - 26, b.h - 26);
+                ctx.globalAlpha = 1;
+            }
+
+            // Etiqueta discreta del edificio
+            ctx.fillStyle = "rgba(148, 163, 184, 0.55)";
+            ctx.font = "700 10px system-ui, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(b.name.toUpperCase(), b.x + b.w / 2, b.y + b.h / 2 + 3);
+
+            ctx.restore();
+        });
+    }
+
+    function drawTrafficLights() {
+        const state = getTrafficLightState();
+        const colorMap = {
+            GREEN: "#06d6a0",
+            AMBER: "#ffb703",
+            RED: "#ff3366"
+        };
+
+        const hCol = colorMap[state.horiz];
+        const vCol = colorMap[state.vert];
+
+        INTERSECTIONS.forEach(inter => {
+            ctx.save();
+            // Soportes en las 4 esquinas de cada cruce principal
+            const offsets = [
+                { dx: -34, dy: -34, col: vCol },
+                { dx: 34,  dy: -34, col: hCol },
+                { dx: -34, dy: 34,  col: hCol },
+                { dx: 34,  dy: 34,  col: vCol }
+            ];
+
+            offsets.forEach(o => {
+                const lx = inter.x + o.dx;
+                const ly = inter.y + o.dy;
+
+                // Caja del semáforo
+                ctx.fillStyle = "#090d16";
+                ctx.strokeStyle = "#334155";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(lx, ly, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Halo luminoso
+                ctx.shadowColor = o.col;
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = o.col;
+                ctx.beginPath();
+                ctx.arc(lx, ly, 3.2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.restore();
+        });
+    }
+
+    function drawMissionZones() {
+        const pulse = Math.sin(pulseTimer * 5) * 4;
+
+        // 1. Zona de Recogida (Taberna Sol - Ámbar)
+        ctx.save();
+        const isPickupActive = !player.hasOrder;
+        const pickupAlpha = isPickupActive ? 0.9 : 0.3;
+
+        ctx.strokeStyle = `rgba(255, 183, 3, ${pickupAlpha})`;
+        ctx.fillStyle = `rgba(255, 183, 3, ${isPickupActive ? 0.16 : 0.05})`;
+        ctx.lineWidth = isPickupActive ? 3 : 1.5;
+
+        ctx.beginPath();
+        ctx.arc(PICKUP_ZONE.x, PICKUP_ZONE.y, PICKUP_ZONE.radius + (isPickupActive ? pulse : 0), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Icono interior de bolsa de pedido
+        ctx.fillStyle = isPickupActive ? "#ffb703" : "#64748b";
+        ctx.font = "800 11px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(isPickupActive ? "★ RECOGER AQUÍ" : "✓ RECOGIDO", PICKUP_ZONE.x, PICKUP_ZONE.y - PICKUP_ZONE.radius - 10);
+        ctx.font = "700 10px system-ui, sans-serif";
+        ctx.fillStyle = "#e2e8f0";
+        ctx.fillText(PICKUP_ZONE.label, PICKUP_ZONE.x, PICKUP_ZONE.y + 4);
+        ctx.restore();
+
+        // 2. Zona de Entrega (Torre Castellana - Cian)
+        ctx.save();
+        const isDeliveryActive = player.hasOrder;
+        const deliveryAlpha = isDeliveryActive ? 0.95 : 0.35;
+
+        ctx.strokeStyle = `rgba(0, 242, 254, ${deliveryAlpha})`;
+        ctx.fillStyle = `rgba(0, 242, 254, ${isDeliveryActive ? 0.18 : 0.05})`;
+        ctx.lineWidth = isDeliveryActive ? 3 : 1.5;
+
+        ctx.beginPath();
+        ctx.arc(DELIVERY_ZONE.x, DELIVERY_ZONE.y, DELIVERY_ZONE.radius + (isDeliveryActive ? pulse : 0), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = isDeliveryActive ? "#00f2fe" : "#64748b";
+        ctx.font = "800 11px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(isDeliveryActive ? "▼ ENTREGAR AQUÍ" : "DESTINO FINAL", DELIVERY_ZONE.x, DELIVERY_ZONE.y - DELIVERY_ZONE.radius - 10);
+        ctx.font = "700 10px system-ui, sans-serif";
+        ctx.fillStyle = "#e2e8f0";
+        ctx.fillText(DELIVERY_ZONE.label, DELIVERY_ZONE.x, DELIVERY_ZONE.y + 4);
+        ctx.restore();
+
+        // Guía direccional sutil desde la moto hacia el objetivo activo
+        if (gameState === "PLAYING") {
+            const target = player.hasOrder ? DELIVERY_ZONE : PICKUP_ZONE;
+            const color = player.hasOrder ? "#00f2fe" : "#ffb703";
+            const dx = target.x - player.x;
+            const dy = target.y - player.y;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > 55) {
+                const angle = Math.atan2(dy, dx);
+                const indicatorDist = 30;
+                const ix = player.x + Math.cos(angle) * indicatorDist;
+                const iy = player.y + Math.sin(angle) * indicatorDist;
+
+                ctx.save();
+                ctx.translate(ix, iy);
+                ctx.rotate(angle);
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(7, 0);
+                ctx.lineTo(-5, -5);
+                ctx.lineTo(-2, 0);
+                ctx.lineTo(-5, 5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+    }
+
+    function drawVehicles() {
+        vehicles.forEach(v => {
+            ctx.save();
+            ctx.translate(v.x, v.y);
+
+            const isHorizontal = Math.abs(v.vx) > Math.abs(v.vy);
+            const dirX = Math.sign(v.vx);
+            const dirY = Math.sign(v.vy);
+
+            // Sombra del coche sobre el asfalto
+            ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+            ctx.beginPath();
+            ctx.roundRect(-v.w / 2 + 2, -v.h / 2 + 3, v.w, v.h, 5);
+            ctx.fill();
+
+            // Haz de faros delanteros de los coches
+            ctx.fillStyle = "rgba(254, 240, 138, 0.14)";
+            ctx.beginPath();
+            if (isHorizontal) {
+                const frontX = dirX * (v.w / 2);
+                ctx.moveTo(frontX, -v.h / 2 + 2);
+                ctx.lineTo(frontX + dirX * 38, -v.h / 2 - 8);
+                ctx.lineTo(frontX + dirX * 38, v.h / 2 + 8);
+                ctx.lineTo(frontX, v.h / 2 - 2);
+            } else {
+                const frontY = dirY * (v.h / 2);
+                ctx.moveTo(-v.w / 2 + 2, frontY);
+                ctx.lineTo(-v.w / 2 - 8, frontY + dirY * 38);
+                ctx.lineTo(v.w / 2 + 8, frontY + dirY * 38);
+                ctx.lineTo(v.w / 2 - 2, frontY);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Carrocería principal claramente contrastada del suelo
+            ctx.fillStyle = v.color;
+            ctx.strokeStyle = "#0f172a";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(-v.w / 2, -v.h / 2, v.w, v.h, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            // Parabrisas y techo
+            ctx.fillStyle = "#1e293b";
+            ctx.beginPath();
+            ctx.roundRect(-v.w * 0.28, -v.h * 0.36, v.w * 0.56, v.h * 0.72, 3);
+            ctx.fill();
+
+            ctx.fillStyle = v.roof;
+            ctx.beginPath();
+            ctx.roundRect(-v.w * 0.18, -v.h * 0.3, v.w * 0.36, v.h * 0.6, 2);
+            ctx.fill();
+
+            // Si es un Taxi de Madrid: banda diagonal/lateral roja y luz verde de libre
+            if (v.type === "taxi") {
+                ctx.fillStyle = "#ef4444";
+                if (isHorizontal) {
+                    ctx.fillRect(-4, -v.h / 2, 7, v.h);
+                } else {
+                    ctx.fillRect(-v.w / 2, -4, v.w, 7);
+                }
+                // Piloto verde superior de taxi madrileño
+                ctx.fillStyle = "#10b981";
+                ctx.beginPath();
+                ctx.arc(0, 0, 2.3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Luces delanteras (blancas) y traseras (rojas)
+            if (isHorizontal) {
+                const fx = dirX * (v.w / 2 - 1.5);
+                const bx = -dirX * (v.w / 2 - 1.5);
+                ctx.fillStyle = "#fef08a";
+                ctx.fillRect(fx - 1, -v.h / 2 + 2, 2, 4);
+                ctx.fillRect(fx - 1, v.h / 2 - 6, 2, 4);
+                ctx.fillStyle = "#ff3366";
+                ctx.fillRect(bx - 1, -v.h / 2 + 2, 2, 4);
+                ctx.fillRect(bx - 1, v.h / 2 - 6, 2, 4);
+            } else {
+                const fy = dirY * (v.h / 2 - 1.5);
+                const by = -dirY * (v.h / 2 - 1.5);
+                ctx.fillStyle = "#fef08a";
+                ctx.fillRect(-v.w / 2 + 2, fy - 1, 4, 2);
+                ctx.fillRect(v.w / 2 - 6, fy - 1, 4, 2);
+                ctx.fillStyle = "#ff3366";
+                ctx.fillRect(-v.w / 2 + 2, by - 1, 4, 2);
+                ctx.fillRect(v.w / 2 - 6, by - 1, 4, 2);
+            }
+
+            ctx.restore();
+        });
+    }
+
+    function drawPlayerMoto() {
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.rotate(player.angle);
+
+        // 1. Cono de luz del faro delantero (solo encendido si queda combustible)
+        if (player.fuel > 0) {
+            const grad = ctx.createRadialGradient(8, 0, 2, 8, 0, 95);
+            grad.addColorStop(0, "rgba(255, 243, 176, 0.45)");
+            grad.addColorStop(0.5, "rgba(0, 242, 254, 0.16)");
+            grad.addColorStop(1, "rgba(0, 242, 254, 0)");
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(8, 0);
+            ctx.arc(8, 0, 95, -0.38, 0.38);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Halo de impacto si acaba de chocar
+        if (player.hitFlash > 0) {
+            ctx.strokeStyle = "#ff3366";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, player.radius + 6, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // 2. Rueda trasera y delantera
+        ctx.fillStyle = "#090d16";
+        ctx.fillRect(-13, -3, 7, 6);
+        ctx.fillRect(6, -3, 7, 6);
+
+        // 3. Chasis de la moto
+        ctx.fillStyle = "#00f2fe";
+        ctx.strokeStyle = "#082f49";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(-9, -5.5, 19, 11, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // 4. Manillar
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(5, -8.5);
+        ctx.lineTo(3, 0);
+        ctx.lineTo(5, 8.5);
+        ctx.stroke();
+
+        // 5. Cajón de reparto trasero (cambia de color cuando lleva el pedido activo)
+        ctx.fillStyle = player.hasOrder ? "#ffb703" : "#334155";
+        ctx.strokeStyle = player.hasOrder ? "#fff" : "#0f172a";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.roundRect(-12, -5, 7, 10, 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 6. Casco del motorista
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(-1, 0, 4.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Visera del casco
+        ctx.fillStyle = "#0f172a";
+        ctx.beginPath();
+        ctx.arc(0.5, 0, 3.6, -0.9, 0.9);
+        ctx.fill();
+
+        // Faro frontal brillante
+        ctx.fillStyle = "#fef08a";
+        ctx.beginPath();
+        ctx.arc(10, 0, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    function renderScene() {
+        ctx.clearRect(0, 0, WORLD_W, WORLD_H);
+        drawRoadNetwork();
+        drawCityBlocks();
+        drawMissionZones();
+        drawTrafficLights();
+        drawVehicles();
+        drawPlayerMoto();
+    }
+
+    let lastTimestamp = performance.now();
+
+    function gameLoop(timestamp) {
+        const dt = Math.min(0.05, (timestamp - lastTimestamp) / 1000);
+        lastTimestamp = timestamp;
+
+        updateGame(dt);
+        renderScene();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    window.onload = function() {
+        resetGameData();
+        renderScene();
+        requestAnimationFrame(gameLoop);
+    };
+})();
+</script>
+</body>
+</html>
